@@ -8,7 +8,7 @@ class transaction;
 
     // ------------
     // Randomization values
-    bit [7:0] data;
+    rand bit [7:0] data;
 
     // ------------
     // Initialization
@@ -25,7 +25,7 @@ class transaction;
 
     // Convert data to string
     function string ToString();
-        return $sformatf("ID #%0d: Data = 0x%0h;", this.ID, this.data);
+        return $sformatf("ID #%0d: Data = 0x%0h;", this.id, this.data);
     endfunction : ToString
 
 endclass : transaction
