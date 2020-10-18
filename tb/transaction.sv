@@ -13,7 +13,7 @@ class transaction;
     // ------------
     // Initialization
     function new ( bit [7:0] data  );
-        this.id   = ID + 1;
+        this.id   = id + 1;
         this.data = data;
     endfunction : new
 
