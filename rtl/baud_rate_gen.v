@@ -27,7 +27,7 @@ module baud_rate_gen
   wire       cpol;    // clock polarity (selected SPI mode)
   wire       cpha;    // clock phase    (selected SPI mode)
   wire       ref_clk; // reference (gold) clock for generate SCLK
-  
+
   // ------------
   // Internal registers
   reg [2:0] cnt, cnt_nxt; // simple counter
@@ -44,6 +44,27 @@ module baud_rate_gen
   // Useful assigns
   assign cpol = mode[1];
   assign cpha = mode[0];
+
+  
+  reg [3:0] shift;
+  reg [7:0] letter;
+
+  initial begin
+    shift = 4'b1000;
+  end
+
+  always @ ( posedge clk ) begin
+    shift <= {shift[0], shift[3:1]};
+  end
+
+  always @ ( * ) begin
+    case ( shift )
+      4'b1000 : letter = 8'hAA;
+      4'b0100 : letter = 8'hBB;
+      4'b0010 : letter = 8'hCC;
+      4'b0001 : letter = 8'hFF;
+    endcase
+  end
 
   // ------------
   // COUNTER FOR CLOCK DIVIDE
@@ -109,9 +130,9 @@ module baud_rate_gen
   // ------------
   // SPI CLOCK GENERATE
   assign ref_clk = cpha ? ref_cpha_1 : ref_cpha_0;
-  assign sclk = cpol ? ref_clk : !ref_clk;
-  assign fall =  ref_cpha_0 && strobe;
-  assign rise = !ref_cpha_0 && strobe;
+  assign sclk    = cpol ? ref_clk : !ref_clk;
+  assign fall    =  ref_cpha_0 && strobe;
+  assign rise    = !ref_cpha_0 && strobe;
   // ------------
 
 endmodule // baud_rate_gen
