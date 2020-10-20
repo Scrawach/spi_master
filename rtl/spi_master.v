@@ -4,7 +4,7 @@
 //
 // Send and receive bytes while tx_buf has data.
 //
-// Can select SPI mode (cpol / cpha).
+// Can select SPI mode (cpol / cpha). And output SCLK freq.
 // About SPI mode: https://en.wikipedia.org/wiki/Serial_Peripheral_Interface#Mode_numbers
 //
 // Parameters: WIDTH       - transaction width (std is 8 bit's)
@@ -12,8 +12,7 @@
 // ------------
 // SERIAL PERIPHERAL INTERFACE MODULE
 module spi_master
-#(parameter       WIDTH = 8,
-  parameter CLK_PER_BIT = 4)
+#(parameter   WIDTH = 8)
 (
  // SYSTEM SIGNALS:
  input                rst_n,        // global reset (async)
@@ -24,15 +23,19 @@ module spi_master
  output [WIDTH - 1:0] rx_data,      // received data
 
  // CONTROL INPUTS:
- input                wr_en,        // write enable
- input                read,         // read data from rx_buf
+ input                wr_en,        // write enable (to tx_buf, start transaction)
+ input                read,         // read data from rx_buf (reset rx_not_empty pulse)
+ input  [        1:0] mode,         // select SPI mode for transaction
+ input  [        2:0] baud_sel,     // select baud rate freq for transaction
+ 
+ // CONTROL OUTPUTS:
  output               tx_not_empty, // signs, that tx_buf contain data for next transmit
  output               rx_not_empty, // signs, that rx_buf contain received data
 
  // SPI INTERFACE:
- input                spi_data_in,  // SDI, MOSI
+ input                spi_data_in,  // SDI ( MOSI )
  output               spi_clk,      // SCLK
- output               spi_data_out, // SDO, MISO
+ output               spi_data_out, // SDO ( MISO )
  output               cs_n          // Chip select
  );
 
@@ -71,17 +74,18 @@ module spi_master
   // ------------
         
   // BAUD RATE GENERATOR
-  baud_rate_gen brg_inst ( .rst_n   ( rst_n     ),
-                           .clk     ( clk       ),
-                           .en      ( busy      ),
-                           .mode    ( 2'b11     ),
-                           .sel     ( 3'b011    ),
-                           .sclk_en ( spi_en    ),
-                           // OUTPUTS:
-                           .strobe  ( strobe    ),
-                           .rise    ( rise_sclk ),
-                           .fall    ( fall_sclk ),
-                           .sclk    ( spi_clk   ));
+  baud_rate_gen brg_inst 
+    ( .rst_n   ( rst_n     ),
+      .clk     ( clk       ),
+      .en      ( busy      ),
+      .mode    ( mode      ),
+      .sel     ( baud_sel  ),
+      .sclk_en ( spi_en    ),
+      // OUTPUTS:
+      .strobe  ( strobe    ),
+      .rise    ( rise_sclk ),
+      .fall    ( fall_sclk ),
+      .sclk    ( spi_clk   ));
 
   assign spi_en = ( state != IDLE );
   // ------------
