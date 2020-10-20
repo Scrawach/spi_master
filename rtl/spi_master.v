@@ -1,5 +1,6 @@
 // ------------
-// SPI MASTER TRANSCEIVER CORE
+// SPI MASTER TRANSCEIVER module
+//
 // Description: SPI (Serial Peripheral Interface) Master
 //
 // Send and receive bytes while tx_buf has data.
@@ -8,9 +9,7 @@
 // About SPI mode: https://en.wikipedia.org/wiki/Serial_Peripheral_Interface#Mode_numbers
 //
 // Parameters: WIDTH       - transaction width (std is 8 bit's)
-//             CLK_PER_BIT - frequence of SCLK (SPI CLK)
 // ------------
-// SERIAL PERIPHERAL INTERFACE MODULE
 module spi_master
 #(parameter   WIDTH = 8)
 (
