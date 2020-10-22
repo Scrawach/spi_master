@@ -10,7 +10,7 @@
 //
 // Parameters: WIDTH       - transaction width (std is 8 bit's)
 // ------------
-module spi_master
+module spi_transceiver
 #(parameter WIDTH = 8)
 (
  // SYSTEM SIGNALS:
@@ -26,18 +26,19 @@ module spi_master
  input                read,         // read data from rx_buf (reset rx_not_empty pulse)
  input  [        1:0] mode,         // select SPI mode for transaction
  input  [        2:0] baud_sel,     // select baud rate freq for transaction
- 
+  
  // CONTROL OUTPUTS:
  output               tx_not_empty, // signs, that tx_buf contain data for next transmit
  output               rx_not_empty, // signs, that rx_buf contain received data
-
+ output               request,      // signs, that all current transaction is done 
+ 
  // SPI INTERFACE:
  input                spi_data_in,  // SDI ( MOSI )
  output               spi_clk,      // SCLK
  output               spi_data_out, // SDO ( MISO )
  output               cs_n          // Chip select
  );
-
+ 
   // ------------
   // Localparam's
   localparam        // MAIN FSM:
@@ -67,7 +68,7 @@ module spi_master
   reg                       busy, busy_nxt;           // busy flag signs, that it's working now
   reg                       txne, txne_nxt;           // tx_buf not empty reg's
   reg                       rxne, rxne_nxt;           // rx_buf not empty reg's
-  
+  reg                       done, done_nxt;           // flag done transaction
   // ------------
   // MODULE IMPLEMENTATION
   // ------------
@@ -158,6 +159,18 @@ module spi_master
 
   assign cs_n = !busy;
   // ------------
+
+  // ------------
+  // DONE TRANSACTION LOGIC
+  always @ ( * ) begin
+    case ( state )
+      IDLE    : done_nxt = rise_sclk ? busy : 1'b0;
+      default : done_nxt = 1'b0;
+    endcase // case ( state )
+  end // always @ ( * )
+
+  assign request = done;
+  // ------------
   
   // ------------
   // TRANSACTION BIT COUNTER
@@ -182,6 +195,7 @@ module spi_master
       txne      <= 1'b0;
       rxne      <= 1'b0;
       busy      <= 1'b0;
+      done      <= 1'b0;
     end else begin
       state     <= state_nxt;
       bit_cnt   <= bit_cnt_nxt;
@@ -189,6 +203,7 @@ module spi_master
       txne      <= txne_nxt;
       rxne      <= rxne_nxt;
       busy      <= busy_nxt;
+      done      <= done_nxt;
     end
   end // always @ ( posedge clk or negedge rst_n )
 
