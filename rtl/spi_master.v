@@ -11,7 +11,7 @@
 // Parameters: WIDTH       - transaction width (std is 8 bit's)
 // ------------
 module spi_master
-#(parameter   WIDTH = 8)
+#(parameter WIDTH = 8)
 (
  // SYSTEM SIGNALS:
  input                rst_n,        // global reset (async)
